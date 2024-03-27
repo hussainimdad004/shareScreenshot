@@ -48,11 +48,7 @@ const App = () => {
 
   return (
     <View style={{flex: 1}}>
-      <ViewShot ref={viewRef} style={{flex: 1}}>
-        <Receipt />
-        <Button title="Take Screenshot" onPress={takeScreenshot} />
-      </ViewShot>
-      {imageUri && (
+      {imageUri ? (
         <View style={{flex: 1}}>
           <Image
             source={{uri: imageUri}}
@@ -61,6 +57,13 @@ const App = () => {
           />
           <Button title="Share Screenshot" onPress={shareScreenshot} />
         </View>
+      ) : (
+        <>
+          <ViewShot ref={viewRef} style={{flex: 1}}>
+            <Receipt />
+          </ViewShot>
+          <Button title="Take Screenshot" onPress={takeScreenshot} />
+        </>
       )}
     </View>
   );
