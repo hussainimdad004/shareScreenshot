@@ -1,117 +1,115 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
-
-import React from 'react';
-import type {PropsWithChildren} from 'react';
+import React, {useRef, useState} from 'react';
 import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
   View,
+  Button,
+  Image,
+  Share,
+  PermissionsAndroid,
+  Platform,
+  Text,
+  StyleSheet,
 } from 'react-native';
+import ViewShot from 'react-native-view-shot';
+import Clipboard from '@react-native-community/clipboard';
 
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
+const App = () => {
+  const [imageUri, setImageUri] = useState<string | null>(null);
+  const viewRef = useRef<ViewShot | null>(null);
 
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
+  const takeScreenshot = async () => {
+    try {
+      if (viewRef.current && viewRef.current.capture) {
+        const uri = await viewRef.current.capture();
+        setImageUri(uri);
+      }
+    } catch (error) {
+      console.error('Failed to capture screenshot: ', error);
+    }
+  };
 
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
-}
-
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+  const shareScreenshot = async () => {
+    try {
+      if (imageUri) {
+        if (Platform.OS === 'android') {
+          await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          );
+        }
+        Clipboard.setString(imageUri);
+        Share.share({
+          message: 'Check out this screenshot!',
+          url: imageUri,
+        });
+      }
+    } catch (error) {
+      console.error('Failed to share screenshot: ', error);
+    }
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
-          }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
+    <View style={{flex: 1}}>
+      <ViewShot ref={viewRef} style={{flex: 1}}>
+        <Receipt />
+        <Button title="Take Screenshot" onPress={takeScreenshot} />
+      </ViewShot>
+      {imageUri && (
+        <View style={{flex: 1}}>
+          <Image
+            source={{uri: imageUri}}
+            style={{flex: 1}}
+            resizeMode="contain"
+          />
+          <Button title="Share Screenshot" onPress={shareScreenshot} />
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      )}
+    </View>
   );
-}
+};
+
+const Receipt = () => {
+  return (
+    <View style={styles.receiptContainer}>
+      <Text style={styles.header}>Receipt</Text>
+      <View style={styles.row}>
+        <Text style={styles.label}>Date:</Text>
+        <Text style={styles.content}>March 26, 2024</Text>
+      </View>
+      <View style={styles.row}>
+        <Text style={styles.label}>Merchant:</Text>
+        <Text style={styles.content}>Example Mart</Text>
+      </View>
+      <View style={styles.row}>
+        <Text style={styles.label}>Total:</Text>
+        <Text style={[styles.content, styles.total]}>$50.00</Text>
+      </View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
+  receiptContainer: {
+    backgroundColor: '#fff',
+    padding: 20,
+    borderRadius: 10,
+    margin: 20,
+    elevation: 5,
   },
-  sectionTitle: {
+  header: {
     fontSize: 24,
-    fontWeight: '600',
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
   },
-  highlight: {
-    fontWeight: '700',
+  label: {
+    fontWeight: 'bold',
+  },
+  content: {},
+  total: {
+    color: 'green',
   },
 });
 
