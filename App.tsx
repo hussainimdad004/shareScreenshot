@@ -1,27 +1,25 @@
-import React, {useRef, useState} from 'react';
+// App.tsx
+
+import React, {useState} from 'react';
 import {
   View,
-  Button,
   Image,
   Share,
   PermissionsAndroid,
   Platform,
   StyleSheet,
+  TouchableOpacity,
+  Text,
 } from 'react-native';
-import ViewShot from 'react-native-view-shot';
-import Receipt from './src/Receipt';
+import Receipt from './src/Receipt'; // Import Receipt component
 import Clipboard from '@react-native-community/clipboard';
 
 const App = () => {
-  const [imageUri, setImageUri] = useState<string | null>(null);
-  const viewRef = useRef<ViewShot | null>(null);
+  const [imageUri, setImageUri] = useState<string | null>(null); // State to hold image URI
 
-  const takeScreenshot = async () => {
+  const takeScreenshot = async (uri: string) => {
     try {
-      if (viewRef.current && viewRef.current.capture) {
-        const uri = await viewRef.current.capture();
-        setImageUri(uri);
-      }
+      setImageUri(uri); // Set captured image URI to state
     } catch (error) {
       console.error('Failed to capture screenshot: ', error);
     }
@@ -33,12 +31,12 @@ const App = () => {
         if (Platform.OS === 'android') {
           await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          );
+          ); // Request permission to write to external storage (Android)
         }
-        Clipboard.setString(imageUri);
+        Clipboard.setString(imageUri); // Copy image URI to clipboard
         Share.share({
           message: 'Check out this screenshot!',
-          url: imageUri,
+          url: imageUri, // Share the image URI
         });
       }
     } catch (error) {
@@ -46,24 +44,30 @@ const App = () => {
     }
   };
 
+  const resetState = () => {
+    setImageUri(null); // Reset image URI state
+  };
+
   return (
     <View style={styles.container}>
       {imageUri ? (
-        <View style={styles.container}>
+        // If image URI exists (i.e., screenshot captured)
+        <View style={styles.shareScreenShotContainer}>
           <Image
             source={{uri: imageUri}}
-            style={styles.container}
-            resizeMode="contain"
+            style={styles.image}
+            resizeMode="contain" // Show captured image
           />
-          <Button title="Share Screenshot" onPress={shareScreenshot} />
+          <TouchableOpacity onPress={shareScreenshot} style={styles.button}>
+            <Text style={styles.buttonText}>Share Screenshot</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={resetState} style={styles.button}>
+            <Text style={styles.buttonText}>Back</Text>
+          </TouchableOpacity>
         </View>
       ) : (
-        <>
-          <ViewShot ref={viewRef} style={styles.container}>
-            <Receipt />
-          </ViewShot>
-          <Button title="Take Screenshot" onPress={takeScreenshot} />
-        </>
+        // If no image URI (i.e., no screenshot captured)
+        <Receipt onTakeScreenshot={takeScreenshot} />
       )}
     </View>
   );
@@ -72,6 +76,37 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#f0f0f0', // Background color
+  },
+  shareScreenShotContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
+    padding: 28,
+    marginVertical: 28,
+    marginHorizontal: 20,
+    borderRadius: 10,
+    elevation: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  image: {
+    flex: 1,
+    width: '100%',
+    borderRadius: 10,
+    marginBottom: 20,
+  },
+  button: {
+    width: '100%',
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
+
 export default App;
