@@ -47,19 +47,19 @@ const App = () => {
   };
 
   return (
-    <View style={{flex: 1}}>
+    <View style={styles.container}>
       {imageUri ? (
-        <View style={{flex: 1}}>
+        <View style={styles.container}>
           <Image
             source={{uri: imageUri}}
-            style={{flex: 1}}
+            style={styles.container}
             resizeMode="contain"
           />
           <Button title="Share Screenshot" onPress={shareScreenshot} />
         </View>
       ) : (
         <>
-          <ViewShot ref={viewRef} style={{flex: 1}}>
+          <ViewShot ref={viewRef} style={styles.container}>
             <Receipt />
           </ViewShot>
           <Button title="Take Screenshot" onPress={takeScreenshot} />
@@ -90,6 +90,9 @@ const Receipt = () => {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   receiptContainer: {
     backgroundColor: '#fff',
     padding: 20,
